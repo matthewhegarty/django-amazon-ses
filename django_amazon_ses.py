@@ -1,4 +1,6 @@
 """Boto3 email backend class for Amazon SES."""
+import logging
+
 import boto3
 
 from botocore.exceptions import BotoCoreError, ClientError
@@ -10,6 +12,8 @@ from django.dispatch import Signal
 
 pre_send = Signal(providing_args=["message"])
 post_send = Signal(providing_args=["message", "message_id"])
+
+logger = logging.getLogger(__name__)
 
 
 class EmailBackend(BaseEmailBackend):
@@ -56,12 +60,14 @@ class EmailBackend(BaseEmailBackend):
             access_key_id = aws_access_key_id
             secret_access_key = aws_secret_access_key
 
+        logger.info(f"creating client: (region={region_name})")
         self.conn = boto3.client(
             "ses",
             aws_access_key_id=access_key_id,
             aws_secret_access_key=secret_access_key,
             region_name=region_name,
         )
+        logger.info("created client")
 
     def send_messages(self, email_messages):
         """Sends one or more EmailMessage objects and returns the
@@ -83,6 +89,7 @@ class EmailBackend(BaseEmailBackend):
         for email_message in email_messages:
             if self._send(email_message):
                 sent_message_count += 1
+        logger.info(f"sent_message_count={sent_message_count}")
         return sent_message_count
 
     def _send(self, email_message):
@@ -118,10 +125,12 @@ class EmailBackend(BaseEmailBackend):
             if self.configuration_set_name is not None:
                 kwargs["ConfigurationSetName"] = self.configuration_set_name
 
+            logger.info("attempting to send")
             result = self.conn.send_raw_email(**kwargs)
             message_id = result["MessageId"]
             post_send.send(self.__class__, message=email_message, message_id=message_id)
         except (ClientError, BotoCoreError):
+            logger.error(f"failed")
             if not self.fail_silently:
                 raise
             return False
