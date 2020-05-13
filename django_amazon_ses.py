@@ -45,6 +45,7 @@ class EmailBackend(BaseEmailBackend):
         secret_access_key = getattr(settings, "AWS_SECRET_ACCESS_KEY", None)
         region_name = getattr(settings, "AWS_DEFAULT_REGION", "us-east-1")
         endpoint_url = getattr(settings, "AWS_SES_ENDPOINT_URL", None)
+        logger.info(f"read endpoint URL: {endpoint_url}")
 
         # Override AWS prefixed configuration with Amazon SES-specific settings
         access_key_id = getattr(settings, "AWS_SES_ACCESS_KEY_ID", access_key_id)
