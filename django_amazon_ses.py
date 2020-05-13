@@ -38,11 +38,13 @@ class EmailBackend(BaseEmailBackend):
 
         """
         super().__init__(fail_silently=fail_silently)
+        logger.info("initialising")
 
         # Get configuration from AWS prefixed settings in settings.py
         access_key_id = getattr(settings, "AWS_ACCESS_KEY_ID", None)
         secret_access_key = getattr(settings, "AWS_SECRET_ACCESS_KEY", None)
         region_name = getattr(settings, "AWS_DEFAULT_REGION", "us-east-1")
+        endpoint_url = getattr(settings, "AWS_SES_ENDPOINT_URL", None)
 
         # Override AWS prefixed configuration with Amazon SES-specific settings
         access_key_id = getattr(settings, "AWS_SES_ACCESS_KEY_ID", access_key_id)
@@ -66,6 +68,7 @@ class EmailBackend(BaseEmailBackend):
             aws_access_key_id=access_key_id,
             aws_secret_access_key=secret_access_key,
             region_name=region_name,
+            endpoint_url=endpoint_url
         )
         logger.info("created client")
 
