@@ -107,6 +107,7 @@ Alternatively, provide AWS credentials using the settings below. This is useful 
     AWS_SES_ACCESS_KEY_ID = 'my_access_key...'
     AWS_SES_SECRET_ACCESS_KEY = 'my_secret...'
     AWS_SES_REGION = 'us-west-2'
+    AWS_SES_ENDPOINT_URL = 'https://email-smtp.us-west-2.amazonaws.com'
 
 If you want to force the use of a SES configuration set you can set the option below.
 This is useful when you want to do more detailed tracking of your emails such as opens and clicks. You can see more details at: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/using-configuration-sets.html.

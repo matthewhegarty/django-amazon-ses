@@ -11,7 +11,7 @@ from django.core.mail import EmailMessage
 
 from django.test import SimpleTestCase
 
-from django_amazon_ses import pre_send
+from django_amazon_ses import pre_send, EmailBackend
 
 settings.configure()
 
@@ -147,3 +147,24 @@ class MailTests(SimpleTestCase):
     def test_send_messages_empty_list(self):
         conn = mail.get_connection("django_amazon_ses.EmailBackend")
         self.assertEqual(conn.send_messages([]), 0)
+
+
+class SettingsTestCase(SimpleTestCase):
+    def test_default_endpoint_url_setting(self):
+        """
+        Verify that when there is no AWS_SES_ENDPOINT_URL setting,
+        then the default URL is set in the boto3 client.
+        """
+        default_url = "https://email.us-east-1.amazonaws.com"
+        backend = EmailBackend()
+        self.assertEquals(default_url, getattr(backend.conn.meta, "endpoint_url"))
+
+    def test_endpoint_url_setting(self):
+        """
+        Verify that when the AWS_SES_ENDPOINT_URL setting is defined,
+        then it is set appropriately in the boto3 client.
+        """
+        endpoint_url = 'https://email-smtp.eu-west-1.amazonaws.com'
+        with self.settings(AWS_SES_ENDPOINT_URL=endpoint_url):
+            backend = EmailBackend()
+            self.assertEquals(endpoint_url, getattr(backend.conn.meta, "endpoint_url"))
