@@ -1,4 +1,6 @@
 """Boto3 email backend class for Amazon SES."""
+import logging
+
 import boto3
 
 from botocore.exceptions import BotoCoreError, ClientError
@@ -10,6 +12,8 @@ from django.dispatch import Signal
 
 pre_send = Signal(providing_args=["message"])
 post_send = Signal(providing_args=["message", "message_id"])
+
+logger = logging.getLogger(__name__)
 
 
 class EmailBackend(BaseEmailBackend):
@@ -56,7 +60,7 @@ class EmailBackend(BaseEmailBackend):
         if aws_access_key_id is not None and aws_secret_access_key is not None:
             access_key_id = aws_access_key_id
             secret_access_key = aws_secret_access_key
-
+        logger.info(f"creating client with endpoint_url: {endpoint_url}")
         self.conn = boto3.client(
             "ses",
             aws_access_key_id=access_key_id,
@@ -119,8 +123,9 @@ class EmailBackend(BaseEmailBackend):
 
             if self.configuration_set_name is not None:
                 kwargs["ConfigurationSetName"] = self.configuration_set_name
-
+            logger.info("sending raw email")
             result = self.conn.send_raw_email(**kwargs)
+            logger.info("email sent")
             message_id = result["MessageId"]
             post_send.send(self.__class__, message=email_message, message_id=message_id)
         except (ClientError, BotoCoreError):
